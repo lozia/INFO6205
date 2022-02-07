@@ -1,1 +1,93 @@
 
+"""
+  The solution for Q9 is at end of the file.
+  Solution by Zongyao Li
+"""
+
+def stableMatching(n, menPreferences, womenPreferences):
+  # Initially, all n men are unmarried
+  unmarriedMen = list(range(n))
+    # None of the men has a spouse yet, we denote this by the value None
+  manSpouse = [None] * n
+    # None of the women has a spouse yet, we denote this by the value None
+  womanSpouse = [None] * n
+    # Each man made 0 proposals, which means that 
+    # his next proposal will be to the woman number 0 in his list
+  nextManChoice = [0] * n
+
+    # While there exists at least one unmarried man:
+  while unmarriedMen:
+    # Pick an arbitrary unmarried man
+    he = unmarriedMen[0]
+    # Store his ranking in this variable for convenience
+    hisPreferences = menPreferences[he]
+    #  Find a woman to propose to
+    she = hisPreferences[nextManChoice[he]] 
+    # Store her ranking in this variable for convenience
+    herPreferences = womenPreferences[she]
+    # Find the present husband of the selected woman (it might be None)
+    currentHusband = womanSpouse[she]
+    # Now "he" proposes to "she". 
+    # Decide whether "she" accepts, and update the following fields
+    # 1. manSpouse
+    # 2. womanSpouse
+    # 3. unmarriedMen
+    # 4. nextManChoice
+    if currentHusband == None:
+      #No Husband case
+      #"She" accepts any proposal
+      womanSpouse[she] = he
+      manSpouse[he] = she
+      #"His" nextchoice is the next woman
+      #in the hisPreferences list
+      nextManChoice[he] = nextManChoice[he] + 1
+      #Delete "him" from the 
+      #Unmarried list
+      unmarriedMen.pop(0)
+    else:
+      #Husband exists
+      #Check the preferences of the 
+      #current husband and that of the proposed man's
+      currentIndex = herPreferences.index(currentHusband)
+      hisIndex = herPreferences.index(he)
+      #Accept the proposal if 
+      #"he" has higher preference in the herPreference list
+      if currentIndex > hisIndex:
+
+        #New stable match is found for "her"
+        womanSpouse[she] = he
+        manSpouse[he] = she
+        nextManChoice[he] = nextManChoice[he] + 1
+        #Pop the newly wed husband
+        unmarriedMen.pop(0)
+        #Now the previous husband is unmarried add
+        #him to the unmarried list
+        unmarriedMen.insert(0,currentHusband)
+      else:
+        nextManChoice[he] = nextManChoice[he] + 1
+
+  return list(manSpouse)
+
+# Solution for Question 9
+import random
+t1_pref = [[i for i in range(8)]] * 8
+t2_pref = [[i for i in range(8)]] * 8
+res = 0
+for _ in range(0, 1000):
+  for p in t1_pref:
+    random.shuffle(p)
+  for p in t2_pref:
+    random.shuffle(p)
+  match = stableMatching(8, t1_pref, t2_pref)
+  stable = True
+  for m, w in enumerate(match):
+    if not stable:
+      break
+    for i, j in enumerate(match[m:]):
+      if t1_pref[m].index(w) > t1_pref[m].index(j) and t2_pref[j].index(i+m) > t2_pref[j].index(m):
+        stable = False
+        print(match, "\n", m,w,":",t1_pref[m], i,j,":",t2_pref[j])
+        break
+  res += 1 if stable else 0
+print(res/1000)
+# the accuracy is 100%
